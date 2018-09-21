@@ -41,3 +41,15 @@ class CharLine(size: Int, contents: Seq[Char], pieces: Set[Char])
       contents.sliding(2) forall ( pair => pair(0) < pair(1) )
   }
 }
+
+
+class IntLine(size: Int, contents: Seq[Int], pieces: Set[Int]) 
+  extends Configuration[Int](size,contents,pieces) {
+  def isCompleted = contents.length==size
+  val filler: Int = -1
+  override val objName="IntLine"
+  def extend(c: Int): IntLine = new IntLine(size,contents :+ c,pieces)
+  def isLegal = {
+    contents forall ( _ > 2 )
+  }
+}
