@@ -6,26 +6,38 @@
 
 package net.salamandrina.crowwsord
 
-class Configuration(val length: Int, val contents: Seq[Char], val pieces: Set[Char]) {
-  def isCompleted: Boolean = contents.length==length
-  def isLegal: Boolean = {
-    if(contents.length < 2)
-      true
-    else
-      contents.sliding(2) forall ( pair => pair(0) < pair(1) )
-  }
-  def findSolutions: Seq[Configuration] = {
+abstract class Configuration[T] (val size: Int, val contents: Seq[T], val pieces: Set[T]) {
+  def isCompleted: Boolean
+  def isLegal: Boolean
+  val objName: String = "GeneralConfig"
+  val filler: T
+  def extend(c: T): Configuration[T]
+  def findSolutions: Seq[Configuration[T]] = {
     if (isCompleted)
       Seq(this)
     else {
       {
         for ( 
-          c: Char <- pieces;
-          newC: Configuration = new Configuration(length, contents :+ c, pieces)
+          c: T <- pieces;
+          newC: Configuration[T] = extend(c)
           if newC.isLegal
         ) yield newC
       }.toSeq.flatMap (_.findSolutions)
     }
   }
-  override def toString = (contents ++ Seq.fill(length-contents.length)('.')).mkString("Cfg< ",""," >")
+  override def toString = (contents ++ Seq.fill(size-contents.length)(filler)).mkString(s"${objName}<","",">")
+}
+
+class CharLine(size: Int, contents: Seq[Char], pieces: Set[Char]) 
+  extends Configuration[Char](size,contents,pieces) {
+  def isCompleted = contents.length==size
+  val filler: Char = '.'
+  override val objName="CharLine"
+  def extend(c: Char): CharLine = new CharLine(size,contents :+ c,pieces)
+  def isLegal = {
+    if(contents.length < 2)
+      true
+    else
+      contents.sliding(2) forall ( pair => pair(0) < pair(1) )
+  }
 }
