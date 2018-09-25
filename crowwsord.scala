@@ -7,6 +7,7 @@
 import net.salamandrina.crowwsord.{CharLine,CharLineShape}
 import net.salamandrina.crowwsord.{IntLine,IntLineShape}
 import net.salamandrina.crowwsord.{SteppableIntLine,SteppableIntLineShape}
+import net.salamandrina.crowwsord.{CoinTotal,CoinTotalShape}
 
 object Crowwsord extends App {
 
@@ -26,5 +27,11 @@ object Crowwsord extends App {
   val sconfLen: SteppableIntLineShape = new SteppableIntLineShape(5)
   val szeroConf: SteppableIntLine = new SteppableIntLine(sconfLen,Seq.empty)
   szeroConf.findSolutions foreach ( c => println(s"  ${c}") )
+
+  println("\nCoinTotal")
+  val cpieces: Set[Int] = Set(10,5,2,1)
+  val cconfLen: CoinTotalShape = new CoinTotalShape(11)
+  val czeroConf: CoinTotal = new CoinTotal(cconfLen,Seq.empty,cpieces)
+  czeroConf.findSolutions foreach ( c => println(s"  ${c}") )
 
 }

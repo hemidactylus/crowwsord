@@ -105,3 +105,28 @@ class SteppableIntLine(shape: SteppableIntLineShape, contents: Seq[Int])
   }
 }
 class SteppableIntLineShape(val length: Int) extends ConfShape[SteppableIntLine]
+
+class CoinTotal(shape: CoinTotalShape, contents: Seq[Int], pieces: Set[Int])
+  extends Configuration[Int,Int](shape,contents,pieces) {
+    // we will never pick denominations greater than the minimum already used
+    // but this is not optimal and we will introduce generic state alongside the "seq"
+    // or in its replacement which is even better
+  case class CoinTotalStep(val piece: Int)
+  type ExtendStep = CoinTotalStep
+  def stepProposals: Seq[ExtendStep] = {
+    val totalSoFar = (contents :\ 0) ( _ + _ )
+    val minUsed = if (contents isEmpty) pieces.max else contents.min
+    (for ( pc <- pieces; if pc <= (shape.amount-totalSoFar); if pc <= minUsed) yield CoinTotalStep(pc)).toSeq
+  }
+  def isCompleted = ( (contents :\ 0) ( _ + _ ) ) == shape.amount
+  val displayFiller: Int = 0
+  override val objName="CoinTotal"
+  def extendWith(stp: ExtendStep): CoinTotal = new CoinTotal(shape,contents :+ stp.piece,pieces)
+  def canExtendWith(stp: ExtendStep): Boolean = true
+  override def toString = {
+    val ending = if (isCompleted) "" else "+..."
+    val bulk = contents.mkString("+")
+    s"${objName}< ${shape.amount} = ${bulk}${ending} >"
+  }
+}
+class CoinTotalShape(val amount: Int) extends ConfShape[CoinTotal]
