@@ -45,9 +45,12 @@ object Crowwsord extends App {
   czeroConf.findSolutions foreach ( c => println(s"  ${c}") )
 
   println("\nSquareStepper")
-  val ssconfLen: SquareStepperShape = new SquareStepperShape(4)
+  val ssconfLen: SquareStepperShape = new SquareStepperShape(5, "100/4")
   val ssconfCont: SquareStepperContents = new SquareStepperContents(Seq.empty)
   val sszeroConf: SquareStepper = new SquareStepper(ssconfLen,ssconfCont)
-  sszeroConf.findSolutions foreach ( c => println(s"\n${c}\n") )
+  // sszeroConf.findSolutions foreach ( c => println(s"\n${c}\n") )
 
+  val oneSol = (sszeroConf.findSolutions).head
+  val qSol = SquareStepper.quadruplicate(oneSol)
+  println(qSol)
 }

@@ -15,13 +15,17 @@ abstract class Configuration[T,U] (val shape: ConfShape[Configuration[T,U]],
   type ExtendStep
   def stepProposals: Seq[ExtendStep]
   def isCompleted: Boolean
+  def isValidCompletion: Boolean = true
   def canExtendWith(c: ExtendStep): Boolean
   val objName: String = "GeneralConfig"
   val displayFiller: T
   def extendWith(stp: ExtendStep): Configuration[T,U]
   def findSolutions: Seq[Configuration[T,U]] = {
     if (isCompleted)
-      Seq(this)
+      if (isValidCompletion)
+        Seq(this)
+      else
+        Seq.empty
     else {
       {
         for ( 
@@ -166,32 +170,70 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
   val maxNumDigits = (shape.side*shape.side).toString.length
 
   def stepProposals: Seq[ExtendStep] = {
-    // we have to pick the available positions
-    // that are (1) free and (2) reachable by the last pos
-    // unless, that is, this is the first position ever, in which case: all free
-    if (contents.occupancy.isEmpty) {
-      for (
-        x <- 0 until shape.side;
-        y <- 0 until shape.side
-      ) yield new SquareStepperStep(x,y)
-    } else {
-      val (lastX,lastY) = contents.occupancy.last
-      (
-        for (
-          y <- 0 until shape.side;
-          if !(contents.occupancy contains (lastX,y));
-          if Math.abs(y-lastY)>1
-        ) yield new SquareStepperStep(lastX,y)
-      ) ++ (
+    if (shape.mode=="grid") {
+      // we have to pick the available positions
+      // that are (1) free and (2) reachable by the last pos
+      // unless, that is, this is the first position ever, in which case: all free
+      if (contents.occupancy.isEmpty) {
         for (
           x <- 0 until shape.side;
-          if !(contents.occupancy contains (x,lastY));
-          if Math.abs(x-lastX)>1
-        ) yield new SquareStepperStep(x,lastY)
-      )
+          y <- 0 until shape.side
+        ) yield new SquareStepperStep(x,y)
+      } else {
+        val (lastX,lastY) = contents.occupancy.last
+        (
+          for (
+            y <- 0 until shape.side;
+            if !(contents.occupancy contains (lastX,y));
+            if Math.abs(y-lastY)>1
+          ) yield new SquareStepperStep(lastX,y)
+        ) ++ (
+          for (
+            x <- 0 until shape.side;
+            if !(contents.occupancy contains (x,lastY));
+            if Math.abs(x-lastX)>1
+          ) yield new SquareStepperStep(x,lastY)
+        )
+      }
+    } else {
+      if (shape.mode == "100/4") {
+        if (contents.occupancy.isEmpty) {
+          for (
+            y <- 0 until shape.side
+          ) yield new SquareStepperStep(shape.side-2,y)
+        } else {
+          val (lastX,lastY) = contents.occupancy.last
+          for (
+            (ix,iy) <- List(
+              (3,0),
+              (-3,0),
+              (0,3),
+              (0,-3),
+              (2,2),
+              (2,-2),
+              (-2,-2),
+              (-2,2)
+            );
+            nx:Int =lastX+ix;
+            ny:Int =lastY+iy;
+            if (nx>=0 && nx < shape.side);
+            if (ny>=0 && ny < shape.side);
+            if !(contents.occupancy contains (nx,ny))
+          ) yield new SquareStepperStep(nx,ny)
+        }
+      } else {
+        Seq.empty
+      }
     }
   }
   def isCompleted = contents.occupancy.length == shape.side*shape.side
+  override def isValidCompletion = {
+    isCompleted && {
+      val (lastX,lastY) = contents.occupancy.last
+      val (firstX,firstY) = contents.occupancy.head
+      (firstX==lastY && lastX==firstY)
+    }
+  }
   val displayFiller: Int = -1
   override val objName="SquareStepper"
   def extendWith(stp: ExtendStep): SquareStepper = new SquareStepper(
@@ -207,6 +249,24 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
     myMatrix.map( sa => sa.map( x => if(x<0) " ." else (x+1 formatted s"%${1+maxNumDigits}d") ).mkString("") ).mkString("\n")
   }
 }
-class SquareStepperShape(val side: Int) extends ConfShape[SquareStepper]
+class SquareStepperShape(val side: Int, val mode: String) extends ConfShape[SquareStepper]
 class SquareStepperContents(val occupancy: Seq[(Int,Int)]) extends ConfContents[SquareStepper]
 // occupancy is a list of filled cells, in that order
+
+object SquareStepper {
+  import SquareStepper._
+  def quadruplicate(firstQuarter: Configuration[Int,Nothing]): SquareStepper = {
+    firstQuarter match {
+      // FIXME a temporary patch!
+      case fq: SquareStepper => {
+        // if (fq.shape.mode=="100/4") {
+          // val newSide: Int = fq.shape.side
+          fq
+        // } else {
+          // throw new IllegalArgumentException("No 100/4 original")
+        // }
+      }
+      case _ => throw new IllegalArgumentException("No SquareStepper")
+    }
+  }
+}
