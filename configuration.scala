@@ -182,19 +182,23 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
         ) yield new SquareStepperStep(x,y)
       } else {
         val (lastX,lastY) = contents.occupancy.last
-        (
-          for (
-            y <- 0 until shape.side;
-            if !(contents.occupancy contains (lastX,y));
-            if Math.abs(y-lastY)>1
-          ) yield new SquareStepperStep(lastX,y)
-        ) ++ (
-          for (
-            x <- 0 until shape.side;
-            if !(contents.occupancy contains (x,lastY));
-            if Math.abs(x-lastX)>1
-          ) yield new SquareStepperStep(x,lastY)
-        )
+        for (
+          (ix,iy) <- List(
+            (3,0),
+            (-3,0),
+            (0,3),
+            (0,-3),
+            (2,2),
+            (2,-2),
+            (-2,-2),
+            (-2,2)
+          );
+          nx:Int =lastX+ix;
+          ny:Int =lastY+iy;
+          if (nx>=0 && nx < shape.side);
+          if (ny>=0 && ny < shape.side);
+          if !(contents.occupancy contains (nx,ny))
+        ) yield new SquareStepperStep(nx,ny)
       }
     } else {
       if (shape.mode == "100/4") {
@@ -203,24 +207,29 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
             y <- 0 until shape.side
           ) yield new SquareStepperStep(shape.side-2,y)
         } else {
-          val (lastX,lastY) = contents.occupancy.last
-          for (
-            (ix,iy) <- List(
-              (3,0),
-              (-3,0),
-              (0,3),
-              (0,-3),
-              (2,2),
-              (2,-2),
-              (-2,-2),
-              (-2,2)
-            );
-            nx:Int =lastX+ix;
-            ny:Int =lastY+iy;
-            if (nx>=0 && nx < shape.side);
-            if (ny>=0 && ny < shape.side);
-            if !(contents.occupancy contains (nx,ny))
-          ) yield new SquareStepperStep(nx,ny)
+          val (firstX,firstY) = contents.occupancy.head
+          if ( contents.occupancy contains (firstY,firstX))
+            Seq.empty
+          else  {
+            val (lastX,lastY) = contents.occupancy.last
+            for (
+              (ix,iy) <- List(
+                (3,0),
+                (-3,0),
+                (0,3),
+                (0,-3),
+                (2,2),
+                (2,-2),
+                (-2,-2),
+                (-2,2)
+              );
+              nx:Int =lastX+ix;
+              ny:Int =lastY+iy;
+              if (nx>=0 && nx < shape.side);
+              if (ny>=0 && ny < shape.side);
+              if !(contents.occupancy contains (nx,ny))
+            ) yield new SquareStepperStep(nx,ny)
+          }
         }
       } else {
         Seq.empty
@@ -229,11 +238,13 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
   }
   def isCompleted = contents.occupancy.length == shape.side*shape.side
   override def isValidCompletion = {
-    isCompleted && {
-      val (lastX,lastY) = contents.occupancy.last
-      val (firstX,firstY) = contents.occupancy.head
-      (firstX==lastY && lastX==firstY)
-    }
+    if (shape.mode=="100/4") {
+      isCompleted && {
+        val (lastX,lastY) = contents.occupancy.last
+        val (firstX,firstY) = contents.occupancy.head
+        (firstX==lastY && lastX==firstY)
+      }
+    } else isCompleted
   }
   val displayFiller: Int = -1
   override val objName="SquareStepper"
@@ -251,10 +262,28 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
   }
   //
   override def lastTouch: SquareStepper = {
-    new SquareStepper(
-      new SquareStepperShape(shape.side*2, "100/4"),
-      contents
-    )
+    if (shape.mode=="100/4") {
+      // prepare the more complex contents list
+      // for quadruplication of the path
+      val doubleSide: Int = shape.side*2
+      val morphers: Seq[(Seq[(Int,Int)]=>Seq[(Int,Int)],(Int,Int)=>(Int,Int))]=Seq(
+        (l => l        ,(x,y) => (x,             y             )),
+        (l => l.reverse,(x,y) => (x,             doubleSide-1-y)),
+        (l => l        ,(x,y) => (doubleSide-1-x,doubleSide-1-y)),
+        (l => l.reverse,(x,y) => (doubleSide-1-x,y             ))
+      )
+      val newContentsBody: Seq[(Int,Int)]=morphers
+        .flatMap( { case (rv,mp) => rv(contents.occupancy).map( { case (x,y) => mp(x,y) } ) } )
+      new SquareStepper(
+        new SquareStepperShape(doubleSide, "grid"),
+        new SquareStepperContents(newContentsBody)
+      )
+    } else
+      this
+      // new SquareStepper(
+      //   new SquareStepperShape(shape.side, "grid"),
+      //   contents
+      // )
   }
 }
 class SquareStepperShape(val side: Int, val mode: String) extends ConfShape[SquareStepper]
