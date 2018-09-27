@@ -23,7 +23,7 @@ abstract class Configuration[T,U] (val shape: ConfShape[Configuration[T,U]],
   def findSolutions: Seq[Configuration[T,U]] = {
     if (isCompleted)
       if (isValidCompletion)
-        Seq(this)
+        Seq(lastTouch)
       else
         Seq.empty
     else {
@@ -35,6 +35,7 @@ abstract class Configuration[T,U] (val shape: ConfShape[Configuration[T,U]],
       }.toSeq.flatMap (_.findSolutions)
     }
   }
+  def lastTouch: Configuration[T,U] = this
   override def toString = s"${objName}< . . . >"
 }
 
@@ -246,27 +247,16 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
     val myMatrix = Array.fill(shape.side)(Array.fill(shape.side)(displayFiller))
     for ( ((x,y),idx) <- contents.occupancy zipWithIndex )
       myMatrix(y)(x)=idx
-    myMatrix.map( sa => sa.map( x => if(x<0) " ." else (x+1 formatted s"%${1+maxNumDigits}d") ).mkString("") ).mkString("\n")
+    myMatrix.map( sa => sa.map( x => if(x<0) ((" "*maxNumDigits)+".") else (x+1 formatted s"%${1+maxNumDigits}d") ).mkString("") ).mkString("\n")
+  }
+  //
+  override def lastTouch: SquareStepper = {
+    new SquareStepper(
+      new SquareStepperShape(shape.side*2, "100/4"),
+      contents
+    )
   }
 }
 class SquareStepperShape(val side: Int, val mode: String) extends ConfShape[SquareStepper]
 class SquareStepperContents(val occupancy: Seq[(Int,Int)]) extends ConfContents[SquareStepper]
 // occupancy is a list of filled cells, in that order
-
-object SquareStepper {
-  import SquareStepper._
-  def quadruplicate(firstQuarter: Configuration[Int,Nothing]): SquareStepper = {
-    firstQuarter match {
-      // FIXME a temporary patch!
-      case fq: SquareStepper => {
-        // if (fq.shape.mode=="100/4") {
-          // val newSide: Int = fq.shape.side
-          fq
-        // } else {
-          // throw new IllegalArgumentException("No 100/4 original")
-        // }
-      }
-      case _ => throw new IllegalArgumentException("No SquareStepper")
-    }
-  }
-}

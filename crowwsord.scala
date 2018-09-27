@@ -51,6 +51,5 @@ object Crowwsord extends App {
   // sszeroConf.findSolutions foreach ( c => println(s"\n${c}\n") )
 
   val oneSol = (sszeroConf.findSolutions).head
-  val qSol = SquareStepper.quadruplicate(oneSol)
-  println(qSol)
+  println(oneSol)
 }
