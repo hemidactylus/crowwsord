@@ -39,10 +39,10 @@ object Crowwsord extends App {
 
   // println("\nCoinTotal")
   // val cpieces: Set[Int] = Set(10,5,2,1)
-  // val cconfLen: CoinTotalShape = new CoinTotalShape(11)
+  // val cconfLen: CoinTotalShape = new CoinTotalShape(21)
   // val cconfCont: CoinTotalContents = new CoinTotalContents(Seq.empty)
   // val czeroConf: CoinTotal = new CoinTotal(cconfLen,cconfCont,cpieces)
-  // czeroConf.findSolutions foreach ( c => println(s"  ${c}") )
+  // (czeroConf.findSolutions zipWithIndex) foreach ( { case (c,i) => println(s"${c}"); println(s"SOL ${i}") } )
 
   // println("\nSquareStepper:Grid")
   // val ssgconfLen: SquareStepperShape = new SquareStepperShape(5, "grid")
@@ -54,5 +54,6 @@ object Crowwsord extends App {
   val ssconfLen: SquareStepperShape = new SquareStepperShape(5, "100/4")
   val ssconfCont: SquareStepperContents = new SquareStepperContents(Seq.empty)
   val sszeroConf: SquareStepper = new SquareStepper(ssconfLen,ssconfCont)
-  sszeroConf.findSolutions foreach ( c => println(s"\n${c}\n") )
+  // sszeroConf.findSolutions foreach ( c => println(s"\n${c}\n") )
+  (sszeroConf.findSolutions zipWithIndex) foreach ( { case (c,i) => println(s"\nSOL ${i+1}\n${c}") } )
 }

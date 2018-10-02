@@ -280,10 +280,6 @@ class SquareStepper(shape: SquareStepperShape, contents: SquareStepperContents)
       )
     } else
       this
-      // new SquareStepper(
-      //   new SquareStepperShape(shape.side, "grid"),
-      //   contents
-      // )
   }
 }
 class SquareStepperShape(val side: Int, val mode: String) extends ConfShape[SquareStepper]
