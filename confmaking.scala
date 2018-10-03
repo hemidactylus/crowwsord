@@ -2,7 +2,10 @@
   confmaking.scala
 */
 
+
 package net.salamandrina.crowwsord
+
+import scala.reflect.ClassTag
 
 abstract class PuzzleEnvironment {
   val puzzleName: String
@@ -19,7 +22,8 @@ abstract class PuzzleEnvironment {
     def isValidCompletion: Boolean = true
     def lastTouch: Configuration
     def extendWith(exp: ExtensionStep): Configuration
-    def findSolutions: Seq[Configuration] = {
+    // this ClassTag avoids an "unchecked for type erasure reasons" compiler warning
+    def findSolutions(implicit ct: ClassTag[ExtensionStep]): Seq[Configuration] = {
       if (isCompleted)
         if (isValidCompletion)
           Seq(lastTouch)
