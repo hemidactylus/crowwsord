@@ -1,46 +1,8 @@
 /*
-  confmaking.scala
+  CharLineEnvironment.scala
 */
 
-
-package net.salamandrina.crowwsord
-
-import scala.reflect.ClassTag
-
-abstract class PuzzleEnvironment {
-  val puzzleName: String
-  type Configuration <: AbstractConfiguration
-  type PuzzleShape <: AbstractPuzzleShape
-  type ExtensionStep <: AbstractExtensionStep
-  def makeConfig(shape: PuzzleShape): Configuration
-  def makeConfig(other: Configuration, extension: ExtensionStep): Configuration
-  //
-  abstract class AbstractConfiguration {
-    override def toString: String = s"${puzzleName}<...>"
-    def stepProposals: Seq[ExtensionStep]
-    def isCompleted: Boolean
-    def isValidCompletion: Boolean = true
-    def lastTouch: Configuration
-    def extendWith(exp: ExtensionStep): Configuration
-    // this ClassTag avoids an "unchecked for type erasure reasons" compiler warning
-    def findSolutions(implicit ct: ClassTag[ExtensionStep]): Seq[Configuration] = {
-      if (isCompleted)
-        if (isValidCompletion)
-          Seq(lastTouch)
-        else
-          Seq.empty
-      else {
-        {
-          for ( 
-            ext: ExtensionStep <- stepProposals
-          ) yield extendWith(ext)
-        }.toSeq.flatMap (_.findSolutions)
-      }
-    }
-  }
-  abstract class AbstractPuzzleShape
-  abstract class AbstractExtensionStep
-}
+import net.salamandrina.crowwsord._
 
 object CharLineEnvironment extends PuzzleEnvironment {
   val puzzleName = "CharLine"
