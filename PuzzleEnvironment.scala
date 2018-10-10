@@ -20,8 +20,9 @@ abstract class PuzzleEnvironment {
     def stepProposals: Seq[ExtensionStep]
     def isCompleted: Boolean
     def isValidCompletion: Boolean = true
-    def lastTouch: Configuration
     def extendWith(exp: ExtensionStep): Configuration
+    def canExtendWith(exp: ExtensionStep): Boolean
+    def lastTouch: Configuration
     // this ClassTag avoids an "unchecked for type erasure reasons" compiler warning
     def findSolutions(implicit ct: ClassTag[ExtensionStep]): Seq[Configuration] = {
       if (isCompleted)
@@ -32,7 +33,8 @@ abstract class PuzzleEnvironment {
       else {
         {
           for ( 
-            ext: ExtensionStep <- stepProposals
+            ext: ExtensionStep <- stepProposals;
+            if canExtendWith(ext)
           ) yield extendWith(ext)
         }.toSeq.flatMap (_.findSolutions)
       }
