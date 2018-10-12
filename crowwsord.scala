@@ -33,7 +33,10 @@ object Crowwsord extends App {
 
   import SquareStepperEnvironment.{SquareStepperConfiguration,SquareStepperPuzzleShape,FillingStrategyEnum}
 
-  val squareStepperPuzzleShape: SquareStepperPuzzleShape = new SquareStepperPuzzleShape(5,FillingStrategyEnum.Duplicate)
+  val squareStepperPuzzleShape: SquareStepperPuzzleShape = new SquareStepperPuzzleShape(
+    (5,5),
+    FillingStrategyEnum.Monoplicate
+  )
   val squareStepper: SquareStepperConfiguration = SquareStepperEnvironment.makeConfig(
     squareStepperPuzzleShape
   )
