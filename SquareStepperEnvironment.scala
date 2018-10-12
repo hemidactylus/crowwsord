@@ -103,11 +103,14 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
         for (newPos <- expandFromPoint(posList.last) ) yield new ExtensionStep(newPos,newDir)
       }
     }
-    def lastTouch: Configuration = this
+    def lastTouch: Configuration = sShape.fillingStrategy match {
+      case FillingStrategyEnum.Monoplicate => this
+      case _ => throw new UnsupportedOperationException
+    }
     def isCompleted: Boolean = 
       !sForward.isEmpty &&
       !sBackward.isEmpty &&
-      // assuming neither is empty
+      // now assuming neither is empty
       (sForward.length + sBackward.length == sShape.side*sShape.side) && {
         val lastF: Position = sForward.last
         val lastB: Position = sBackward.last
@@ -121,10 +124,6 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
         places(pos.x)(pos.y)=" "*(nChars-indDesc.length) + indDesc
       }
       s"${puzzleName} <\n${ places.map( _.mkString("# ",""," #") ).mkString("\n") }\n>"
-
-      // val strDescF: String = s"F ${sForward.map( _.toString ).mkString("#")}"
-      // val strDescB: String = s"B ${sBackward.reverse.map( _.toString ).mkString("#")}"
-      // s"${puzzleName}<${strDescF}|${strDescB}>"
     }
   }
   class SquareStepperExtensionStep(val newPosition: Position, val direction: Direction) extends AbstractExtensionStep
