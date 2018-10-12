@@ -13,6 +13,10 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
     val Forward, Backward = Value
   }
   type Direction = DirectionEnum.Value
+  object FillingStrategyEnum extends Enumeration {
+    val Monoplicate, Duplicate, Quadruplicate = Value
+  }
+  type FillingStrategy = FillingStrategyEnum.Value
   //
   val puzzleName = "SquareStepper"
   type Configuration = SquareStepperConfiguration
@@ -20,9 +24,6 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
   type ExtensionStep = SquareStepperExtensionStep
   def makeConfig(shape: PuzzleShape): Configuration = new Configuration(shape,Seq.empty,Seq.empty)
   def makeConfig(other: Configuration, extension: ExtensionStep): Configuration = {
-    //
-    // if (other.sForward.length > 4) println(other)
-    //
     extension.direction match {
       case DirectionEnum.Forward => new Configuration(
         other.sShape,
@@ -37,7 +38,7 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
     }
   }
   //
-  class SquareStepperPuzzleShape(val side: Int) extends AbstractPuzzleShape
+  class SquareStepperPuzzleShape(val side: Int, val fillingStrategy: FillingStrategy) extends AbstractPuzzleShape
   //
   class SquareStepperConfiguration(
     shape: SquareStepperPuzzleShape,
@@ -75,14 +76,29 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
       ) yield nPoint
     }
     def stepProposals: Seq[ExtensionStep] = {
+      // the first pos is always on forward
       val newDir: Direction = if(sForward.length > sBackward.length) DirectionEnum.Backward else DirectionEnum.Forward
       val posList: Seq[Position] = if (newDir == DirectionEnum.Forward) sForward else sBackward
       if (posList.isEmpty) {
         if ( newDir == DirectionEnum.Forward)
-          for( y <- 0 until sShape.side ) yield new ExtensionStep(Position(sShape.side-2,y),newDir)
-          // for( x <- 0 until sShape.side ; y <- 0 until sShape.side ) yield new ExtensionStep(Position(x,y),newDir)
+          // here we start from scratch
+          sShape.fillingStrategy match {
+            case FillingStrategyEnum.Monoplicate => {
+              for( x <- 0 until sShape.side ; y <- 0 until sShape.side ) yield new ExtensionStep(Position(x,y),newDir)
+            }
+            case _ => throw new UnsupportedOperationException
+              // starting the very first pos on the quadru line
+              // for( y <- 0 until sShape.side ) yield new ExtensionStep(Position(sShape.side-2,y),newDir)
+          }
         else
-          Seq[ExtensionStep](new ExtensionStep(Position(sForward.last.y,sForward.last.x),newDir))
+          sShape.fillingStrategy match {
+            case FillingStrategyEnum.Monoplicate => {
+              for( x <- 0 until sShape.side ; y <- 0 until sShape.side ) yield new ExtensionStep(Position(x,y),newDir)
+            }
+            case _ => throw new UnsupportedOperationException
+              // the mirror point for quadru when starting backw
+              // Seq[ExtensionStep](new ExtensionStep(Position(sForward.last.y,sForward.last.x),newDir))
+          }
       } else {
         for (newPos <- expandFromPoint(posList.last) ) yield new ExtensionStep(newPos,newDir)
       }
@@ -104,7 +120,7 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
         val indDesc: String = s"${ind+1}"
         places(pos.x)(pos.y)=" "*(nChars-indDesc.length) + indDesc
       }
-      s"${puzzleName} <\n${ places.map( _.mkString ).mkString("\n") }\n>"
+      s"${puzzleName} <\n${ places.map( _.mkString("# ",""," #") ).mkString("\n") }\n>"
 
       // val strDescF: String = s"F ${sForward.map( _.toString ).mkString("#")}"
       // val strDescB: String = s"B ${sBackward.reverse.map( _.toString ).mkString("#")}"

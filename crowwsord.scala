@@ -13,9 +13,9 @@ object Crowwsord extends App {
     charLinePuzzleShape
   )
 
-  println("\n[Crowwsord] Starting ...")
+  println("\n[Crowwsord] Starting (charLine) ...")
 
-  ( charLine.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"    ${i}:   ${c}") } )
+  ( charLine.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
   */
 
   /*
@@ -26,20 +26,20 @@ object Crowwsord extends App {
     coinTotalPuzzleShape
   )
 
-  println("\n[Crowwsord] Starting ...")
+  println("\n[Crowwsord] Starting (coinTotal) ...")
 
-  ( coinTotal.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"    ${i}:   ${c}") } )
+  ( coinTotal.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
   */
 
-  import SquareStepperEnvironment.{SquareStepperConfiguration,SquareStepperPuzzleShape}
+  import SquareStepperEnvironment.{SquareStepperConfiguration,SquareStepperPuzzleShape,FillingStrategyEnum}
 
-  val squareStepperPuzzleShape: SquareStepperPuzzleShape = new SquareStepperPuzzleShape(5)
+  val squareStepperPuzzleShape: SquareStepperPuzzleShape = new SquareStepperPuzzleShape(5,FillingStrategyEnum.Monoplicate)
   val squareStepper: SquareStepperConfiguration = SquareStepperEnvironment.makeConfig(
     squareStepperPuzzleShape
   )
 
-  println("\n[Crowwsord] Starting ...")
+  println("\n[Crowwsord] Starting (squareStepper) ...")
 
-  ( squareStepper.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"    ${i}:   ${c}") } )
+  ( squareStepper.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
 
 }
