@@ -1,5 +1,5 @@
 /*
-  CoinTotal.scala
+  CoinTotalEnvironment.scala
 */
 
 import net.salamandrina.crowwsord._

@@ -1,5 +1,5 @@
 /*
-  confmaking.scala
+  PuzzleEnvironment.scala
 */
 
 

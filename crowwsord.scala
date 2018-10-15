@@ -31,6 +31,7 @@ object Crowwsord extends App {
   ( coinTotal.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
   */
 
+  /*
   import SquareStepperEnvironment.{SquareStepperConfiguration,SquareStepperPuzzleShape,FillingStrategyEnum}
 
   val squareStepperPuzzleShape: SquareStepperPuzzleShape = new SquareStepperPuzzleShape(
@@ -44,5 +45,24 @@ object Crowwsord extends App {
   println("\n[Crowwsord] Starting (squareStepper) ...")
 
   ( squareStepper.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
+  */
+
+  import CrosswordEnvironment.{CrosswordConfiguration, CrosswordPuzzleShape}
+
+  import scala.io.Source.fromFile
+  val allowedWords: Set[String] = fromFile("words.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
+
+  val crosswordPuzzleShape: CrosswordPuzzleShape = new CrosswordPuzzleShape(
+    3,
+    3,
+    allowedWords
+  )
+  val crossword: CrosswordConfiguration = CrosswordEnvironment.makeConfig(
+    crosswordPuzzleShape
+  )
+
+  println("\n[Crowwsord] Starting (crossword) ...")
+
+  ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
 
 }
