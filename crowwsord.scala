@@ -63,6 +63,6 @@ object Crowwsord extends App {
 
   println("\n[Crowwsord] Starting (crossword) ...")
 
-  ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
+  ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
 
 }
