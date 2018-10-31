@@ -14,6 +14,7 @@ abstract class PuzzleEnvironment {
   type ExtensionStep <: AbstractExtensionStep
   def makeConfig(shape: PuzzleShape): Configuration
   def makeConfig(other: Configuration, extension: ExtensionStep): Configuration
+  def makeNewConfig(shape: PuzzleShape): Configuration = makeConfig(shape)
   //
   abstract class AbstractConfiguration {
     override def toString: String = s"${puzzleName}<...>"

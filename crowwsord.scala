@@ -9,7 +9,7 @@ object Crowwsord extends App {
   import CharLineEnvironment.{CharLineConfiguration,CharLinePuzzleShape}
 
   val charLinePuzzleShape=new CharLinePuzzleShape(7,Set('a','b','c','d','f','q','r','y','z'))
-  val charLine: CharLineConfiguration = CharLineEnvironment.makeConfig(
+  val charLine: CharLineConfiguration = CharLineEnvironment.makeNewConfig(
     charLinePuzzleShape
   )
 
@@ -22,7 +22,7 @@ object Crowwsord extends App {
   import CoinTotalEnvironment.{CoinTotalConfiguration,CoinTotalPuzzleShape}
 
   val coinTotalPuzzleShape=new CoinTotalPuzzleShape(12,Set(1,2,5))
-  val coinTotal: CoinTotalConfiguration = CoinTotalEnvironment.makeConfig(
+  val coinTotal: CoinTotalConfiguration = CoinTotalEnvironment.makeNewConfig(
     coinTotalPuzzleShape
   )
 
@@ -38,7 +38,7 @@ object Crowwsord extends App {
     (5,5),
     FillingStrategyEnum.Monoplicate
   )
-  val squareStepper: SquareStepperConfiguration = SquareStepperEnvironment.makeConfig(
+  val squareStepper: SquareStepperConfiguration = SquareStepperEnvironment.makeNewConfig(
     squareStepperPuzzleShape
   )
 
@@ -47,7 +47,7 @@ object Crowwsord extends App {
   ( squareStepper.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
   */
 
-  import CrosswordEnvironment.{CrosswordConfiguration, CrosswordPuzzleShape}
+  import CrosswordEnvironment.{CrosswordConfiguration, CrosswordPuzzleShape, Position, CellContents, BlackCell, EmptyCell, Letter}
 
   import scala.io.Source.fromFile
   val allowedWords: Set[String] = fromFile("words.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
@@ -55,9 +55,12 @@ object Crowwsord extends App {
   val crosswordPuzzleShape: CrosswordPuzzleShape = new CrosswordPuzzleShape(
     3,
     3,
-    allowedWords
+    allowedWords,
+    Map[Position,CellContents](
+      (Position(1,1) -> BlackCell)
+    )
   )
-  val crossword: CrosswordConfiguration = CrosswordEnvironment.makeConfig(
+  val crossword: CrosswordConfiguration = CrosswordEnvironment.makeNewConfig(
     crosswordPuzzleShape
   )
 
