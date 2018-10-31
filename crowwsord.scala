@@ -55,10 +55,11 @@ object Crowwsord extends App {
   val crosswordPuzzleShape: CrosswordPuzzleShape = new CrosswordPuzzleShape(
     3,
     3,
-    allowedWords,
-    Map[Position,CellContents](
-      (Position(1,1) -> BlackCell)
-    )
+    allowedWords
+    // ,
+    // Map[Position,CellContents](
+    //   (Position(1,1) -> BlackCell)
+    // )
   )
   val crossword: CrosswordConfiguration = CrosswordEnvironment.makeNewConfig(
     crosswordPuzzleShape

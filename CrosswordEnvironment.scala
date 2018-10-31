@@ -73,12 +73,22 @@ object CrosswordEnvironment extends PuzzleEnvironment {
       true // FIXME
     }
     def stepProposals: Seq[ExtensionStep] = {
-      Seq.empty
+      if (cells.contains(Position(0,0)))
+        Seq.empty
+      else
+        Seq[ExtensionStep](
+          new ExtensionStep(Seq(
+            new CrosswordCellStep(Position(0,0),Letter('a'))
+          ),Set[String]("a")),
+          new ExtensionStep(Seq(
+            new CrosswordCellStep(Position(0,0),BlackCell)
+          ),Set.empty)
+        )
       // FIXME
     }
     def lastTouch: Configuration = this
     def isCompleted: Boolean = {
-      true
+      cells.contains(Position(0,0))
       // FIXME
     }
     override def toString: String = {
