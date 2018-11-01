@@ -125,13 +125,13 @@ object CrosswordEnvironment extends PuzzleEnvironment {
               Position(startPosition.x+xind,startPosition.y),
               Letter(let)
             ),
-            None
+            Some("xxx")
           )
         }
       ).toSeq
       val (
         letterSequence: Seq[CrosswordCellStep],
-        newWordOptionSeq: Option[String]
+        newWordOptionSeq: Seq[Option[String]]
       )=letterWordOptSequence.unzip
       val newWordAcross:Set[String] = (for(Some(wdx)<-newWordOptionSeq) yield wdx).toSet
       // complete /or not/ with the final black cell
