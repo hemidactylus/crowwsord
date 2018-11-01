@@ -95,30 +95,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
             .wordSet
             .filter( extensionMask.accepts(_) )
             .map(
-              { case(wordToAdd) =>
-                new ExtensionStep(
-                  wordToAdd.zipWithIndex.map(
-                    {
-                      case(let,xind) => new CrosswordCellStep(
-                        Position(firstFreePosition.x+xind,firstFreePosition.y),
-                        Letter(let)
-                      )
-                    }
-                  // ).toSeq,
-                  ).toSeq ++ (
-                    if (!cells.contains(Position(firstFreePosition.x+wordToAdd.length,firstFreePosition.y)))
-                      Seq[CrosswordCellStep](
-                        new CrosswordCellStep(
-                          Position(firstFreePosition.x+wordToAdd.length,firstFreePosition.y),
-                          BlackCell
-                        )
-                      )
-                    else
-                      Seq.empty
-                  ),
-                  Set[String](wordToAdd)
-                )
-              }
+              wordAddingResult(_,firstFreePosition)
             )
         ).toSeq :+ new ExtensionStep(Seq(new CrosswordCellStep(firstFreePosition,BlackCell)), Set.empty)
       }
@@ -140,6 +117,29 @@ object CrosswordEnvironment extends PuzzleEnvironment {
       s"${puzzleName}<${strDesc}\n>"
     }
     //
+    def wordAddingResult(wordToAdd: String, startPosition: Position): ExtensionStep = {
+      val letterSequence: Seq[CrosswordCellStep]=wordToAdd.zipWithIndex.map(
+        {
+          case(let,xind) => new CrosswordCellStep(
+            Position(startPosition.x+xind,startPosition.y),
+            Letter(let)
+          )
+        }
+      ).toSeq
+      // complete /or not/ with the final black cell
+      val closedLetterSequence: Seq[CrosswordCellStep] = if (!cells.contains(Position(startPosition.x+wordToAdd.length,startPosition.y)))
+        letterSequence :+ new CrosswordCellStep(
+            Position(startPosition.x+wordToAdd.length,startPosition.y),
+            BlackCell
+          )
+      else
+        letterSequence
+
+      new ExtensionStep(
+        closedLetterSequence,
+        Set[String](wordToAdd)
+      )
+    }
     def makeExtensionMask(startPosition: Position): CrosswordExtensionStepMask = {
       // we start from this position and prepare a mask for the extensions
       // we can propose. TEMP: max length of the word to insert
