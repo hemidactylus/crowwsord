@@ -118,14 +118,22 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     }
     //
     def wordAddingResult(wordToAdd: String, startPosition: Position): ExtensionStep = {
-      val letterSequence: Seq[CrosswordCellStep]=wordToAdd.zipWithIndex.map(
+      val letterWordOptSequence: Seq[(CrosswordCellStep,Option[String])]=wordToAdd.zipWithIndex.map(
         {
-          case(let,xind) => new CrosswordCellStep(
-            Position(startPosition.x+xind,startPosition.y),
-            Letter(let)
+          case(let,xind) => (
+            new CrosswordCellStep(
+              Position(startPosition.x+xind,startPosition.y),
+              Letter(let)
+            ),
+            None
           )
         }
       ).toSeq
+      val (
+        letterSequence: Seq[CrosswordCellStep],
+        newWordOptionSeq: Option[String]
+      )=letterWordOptSequence.unzip
+      val newWordAcross:Set[String] = (for(Some(wdx)<-newWordOptionSeq) yield wdx).toSet
       // complete /or not/ with the final black cell
       val closedLetterSequence: Seq[CrosswordCellStep] = if (!cells.contains(Position(startPosition.x+wordToAdd.length,startPosition.y)))
         letterSequence :+ new CrosswordCellStep(
@@ -137,7 +145,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
 
       new ExtensionStep(
         closedLetterSequence,
-        Set[String](wordToAdd)
+        Set[String](wordToAdd) ++ newWordAcross
       )
     }
     def makeExtensionMask(startPosition: Position): CrosswordExtensionStepMask = {
