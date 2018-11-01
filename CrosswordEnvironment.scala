@@ -70,26 +70,62 @@ object CrosswordEnvironment extends PuzzleEnvironment {
   ) extends AbstractConfiguration {
     def extendWith(extensionStep: ExtensionStep): Configuration = makeConfig(this,extensionStep)
     def canExtendWith(extensionStep: ExtensionStep): Boolean = {
-      true // FIXME
+      true
+      // FIXME usedWords.intersect(extensionStep.newWords).isEmpty
     }
     def stepProposals: Seq[ExtensionStep] = {
-      if (cells.contains(Position(0,0)))
+      val emptiesLazyFinder = (
+        for (
+          y <- (0 until shape.height).view;
+          x <- (0 until shape.width).view;
+          tPos=Position(x,y)
+          if !cells.contains(tPos)
+        ) yield tPos
+      )
+      if (emptiesLazyFinder.isEmpty)
         Seq.empty
-      else
-        Seq[ExtensionStep](
-          new ExtensionStep(Seq(
-            new CrosswordCellStep(Position(0,0),Letter('a'))
-          ),Set[String]("a")),
-          new ExtensionStep(Seq(
-            new CrosswordCellStep(Position(0,0),BlackCell)
-          ),Set.empty)
+      else {
+        val firstFreePosition: Position=emptiesLazyFinder.head
+        // we propose horizontal words from here, or a black cell
+        val extensionMask:CrosswordExtensionStepMask = makeExtensionMask(
+          firstFreePosition
         )
-      // FIXME
+        (
+          shape
+            .wordSet
+            .filter( extensionMask.accepts(_) )
+            .map(
+              { case(wordToAdd) =>
+                new ExtensionStep(
+                  wordToAdd.zipWithIndex.map(
+                    {
+                      case(let,xind) => new CrosswordCellStep(
+                        Position(firstFreePosition.x+xind,firstFreePosition.y),
+                        Letter(let)
+                      )
+                    }
+                  // ).toSeq,
+                  ).toSeq ++ (
+                    if (!cells.contains(Position(firstFreePosition.x+wordToAdd.length,firstFreePosition.y)))
+                      Seq[CrosswordCellStep](
+                        new CrosswordCellStep(
+                          Position(firstFreePosition.x+wordToAdd.length,firstFreePosition.y),
+                          BlackCell
+                        )
+                      )
+                    else
+                      Seq.empty
+                  ),
+                  Set[String](wordToAdd)
+                )
+              }
+            )
+        ).toSeq :+ new ExtensionStep(Seq(new CrosswordCellStep(firstFreePosition,BlackCell)), Set.empty)
+      }
     }
     def lastTouch: Configuration = this
     def isCompleted: Boolean = {
-      cells.contains(Position(0,0))
-      // FIXME
+      cells.size - 2*(shape.width + shape.height + 2) >= shape.width*shape.height
     }
     override def toString: String = {
       val usedWordDesc: String = usedWords.mkString("/")
@@ -103,10 +139,28 @@ object CrosswordEnvironment extends PuzzleEnvironment {
       )
       s"${puzzleName}<${strDesc}\n>"
     }
+    //
+    def makeExtensionMask(startPosition: Position): CrosswordExtensionStepMask = {
+      // we start from this position and prepare a mask for the extensions
+      // we can propose. TEMP: max length of the word to insert
+      val maxLength: Int =(
+        for (
+          x <- (startPosition.x to shape.width).view;
+          tPos=Position(x,startPosition.y);
+          if cells.getOrElse(tPos,EmptyCell)==BlackCell
+        ) yield x-startPosition.x
+      ).head
+      CrosswordExtensionStepMask(maxLength)
+    }
   }
   class CrosswordCellStep(val nPosition: Position, val nCellContents: CellContents)
   class CrosswordExtensionStep(
     val cellSteps: Seq[CrosswordCellStep],
     val newWords: Set[String]
   ) extends AbstractExtensionStep
+  //
+  case class CrosswordExtensionStepMask(maxLength: Int) {
+    // temporary implementation
+    def accepts(wd: String): Boolean = wd.length <= maxLength
+  } 
 }
