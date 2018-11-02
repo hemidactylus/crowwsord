@@ -137,7 +137,6 @@ object CrosswordEnvironment extends PuzzleEnvironment {
           }
         }
       ).toSeq
-      //
       // complete /or not/ with the final black cell
       val closedLetterWOSequence: Seq[(CrosswordCellStep,Seq[String])] =
         if (!cells.contains(Position(startPosition.x+wordToAdd.length,startPosition.y)))
@@ -159,7 +158,6 @@ object CrosswordEnvironment extends PuzzleEnvironment {
         newWordLstSeq: Seq[Seq[String]]
       )=closedLetterWOSequence.unzip
       val newWordsAcross: Set[String] = (newWordLstSeq.flatMap( (wList: Seq[String]) => wList )).toSet
-        //(for(Some(wdx)<-newWordOptionSeq) yield wdx).toSet
       new ExtensionStep(
         closedLetterSequence,
         Set[String](wordToAdd) ++ newWordsAcross
@@ -183,7 +181,11 @@ object CrosswordEnvironment extends PuzzleEnvironment {
       // now those two get to right before the first black cell.
       // what to do now? It depends on whether we are adding a black cell or a letter
       if (inserteeCell==BlackCell) {
-        Seq.empty // fixme
+        for (
+          seqc <- Seq[Seq[CellContents]](backwardCutCells.reverse, forwardCutCells);
+          if !seqc.isEmpty;
+          if !seqc.exists( _ == EmptyCell )
+        ) yield ( seqc.map( { case Letter(c) => c } ).mkString("") )
       } else {
         val completeSequence: Seq[CellContents]=(backwardCutCells.reverse :+ inserteeCell) ++ forwardCutCells
         if ( (!completeSequence.isEmpty) && (
