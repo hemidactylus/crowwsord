@@ -33,7 +33,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     val borderedShape: PuzzleShape = CrosswordPuzzleShape(
       shape.width,
       shape.height,
-      shape.wordSet
+      shape.wordSet ++ Set[String]("")
     )
     val startCells: Map[Position,CellContents] = shape.startCells ++ (
         for (
@@ -70,8 +70,9 @@ object CrosswordEnvironment extends PuzzleEnvironment {
   ) extends AbstractConfiguration {
     def extendWith(extensionStep: ExtensionStep): Configuration = makeConfig(this,extensionStep)
     def canExtendWith(extensionStep: ExtensionStep): Boolean = {
-      true
-      // FIXME usedWords.intersect(extensionStep.newWords).isEmpty
+      // true
+      // usedWords.intersect(extensionStep.newWords).isEmpty
+      extensionStep.newWords.forall( shape.wordSet.contains(_) )
     }
     def stepProposals: Seq[ExtensionStep] = {
       val emptiesLazyFinder = (
@@ -97,7 +98,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
             .map(
               wordAddingResult(_,firstFreePosition)
             )
-        ).toSeq :+ new ExtensionStep(Seq(new CrosswordCellStep(firstFreePosition,BlackCell)), Set.empty)
+        ).toSeq
       }
     }
     def lastTouch: Configuration = this
@@ -118,35 +119,80 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     }
     //
     def wordAddingResult(wordToAdd: String, startPosition: Position): ExtensionStep = {
-      val letterWordOptSequence: Seq[(CrosswordCellStep,Option[String])]=wordToAdd.zipWithIndex.map(
+      val letterWordLstSequence: Seq[(CrosswordCellStep,Seq[String])]=wordToAdd.zipWithIndex.map(
         {
-          case(let,xind) => (
-            new CrosswordCellStep(
-              Position(startPosition.x+xind,startPosition.y),
-              Letter(let)
-            ),
-            Some("xxx")
-          )
+          case(let,xind) => {
+            val thisPosition=Position(startPosition.x+xind,startPosition.y)
+            val tLetter=Letter(let)
+            (
+              new CrosswordCellStep(
+                thisPosition,
+                tLetter
+              ),
+              getCrossingCompleteWord(
+                thisPosition,
+                tLetter
+              )
+            )
+          }
         }
       ).toSeq
-      val (
-        letterSequence: Seq[CrosswordCellStep],
-        newWordOptionSeq: Seq[Option[String]]
-      )=letterWordOptSequence.unzip
-      val newWordAcross:Set[String] = (for(Some(wdx)<-newWordOptionSeq) yield wdx).toSet
+      //
       // complete /or not/ with the final black cell
-      val closedLetterSequence: Seq[CrosswordCellStep] = if (!cells.contains(Position(startPosition.x+wordToAdd.length,startPosition.y)))
-        letterSequence :+ new CrosswordCellStep(
-            Position(startPosition.x+wordToAdd.length,startPosition.y),
-            BlackCell
+      val closedLetterWOSequence: Seq[(CrosswordCellStep,Seq[String])] =
+        if (!cells.contains(Position(startPosition.x+wordToAdd.length,startPosition.y)))
+          letterWordLstSequence :+ (
+            new CrosswordCellStep(
+              Position(startPosition.x+wordToAdd.length,startPosition.y),
+              BlackCell
+            ),
+            getCrossingCompleteWord(
+              Position(startPosition.x+wordToAdd.length,startPosition.y),
+              BlackCell
+            )
           )
-      else
-        letterSequence
-
+        else
+          letterWordLstSequence
+      //
+      val (
+        closedLetterSequence: Seq[CrosswordCellStep],
+        newWordLstSeq: Seq[Seq[String]]
+      )=closedLetterWOSequence.unzip
+      val newWordsAcross: Set[String] = (newWordLstSeq.flatMap( (wList: Seq[String]) => wList )).toSet
+        //(for(Some(wdx)<-newWordOptionSeq) yield wdx).toSet
       new ExtensionStep(
         closedLetterSequence,
-        Set[String](wordToAdd) ++ newWordAcross
+        Set[String](wordToAdd) ++ newWordsAcross
       )
+    }
+    def getCrossingCompleteWord(midPosition: Position, inserteeCell: CellContents): Seq[String] = {
+      // given a middle starting position, and its proposed content letter,
+      // a Some(word) is returned if and only if the placement of the letter
+      // *completes* a vertical word up to the first encountered black cell
+      // and down to the first encountered black cell
+      val forwardCutCells: List[CellContents] = (
+        for(y <- (midPosition.y+1 to shape.height+1).view)
+          yield cells.getOrElse(Position(midPosition.x,y),EmptyCell)
+        )
+        .takeWhile( _ != BlackCell ).toList
+      val backwardCutCells: List[CellContents] = (
+        for(y <- (midPosition.y-1 to -1 by -1     ).view)
+          yield cells.getOrElse(Position(midPosition.x,y),EmptyCell)
+        )
+        .takeWhile( _ != BlackCell ).toList
+      // now those two get to right before the first black cell.
+      // what to do now? It depends on whether we are adding a black cell or a letter
+      if (inserteeCell==BlackCell) {
+        Seq.empty // fixme
+      } else {
+        val completeSequence: Seq[CellContents]=(backwardCutCells.reverse :+ inserteeCell) ++ forwardCutCells
+        if ( (!completeSequence.isEmpty) && (
+          !completeSequence.exists( _ == EmptyCell )
+        )) {
+          Seq[String]( completeSequence.map( { case Letter(c) => c } ).mkString("") )
+        } else
+          Seq.empty
+      }
     }
     def makeExtensionMask(startPosition: Position): CrosswordExtensionStepMask = {
       // we start from this position and prepare a mask for the extensions
@@ -165,7 +211,9 @@ object CrosswordEnvironment extends PuzzleEnvironment {
   class CrosswordExtensionStep(
     val cellSteps: Seq[CrosswordCellStep],
     val newWords: Set[String]
-  ) extends AbstractExtensionStep
+  ) extends AbstractExtensionStep {
+    override def toString = s"CellSteps[${cellSteps}],newWords[${newWords}]"
+  }
   //
   case class CrosswordExtensionStepMask(maxLength: Int) {
     // temporary implementation
