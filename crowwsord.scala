@@ -53,7 +53,7 @@ object Crowwsord extends App {
   val allowedWords: Set[String] = fromFile("words.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
 
   val crosswordPuzzleShape: CrosswordPuzzleShape = new CrosswordPuzzleShape(
-    3,
+    4,
     3,
     allowedWords
     // ,
@@ -68,5 +68,6 @@ object Crowwsord extends App {
   println("\n[Crowwsord] Starting (crossword) ...")
 
   ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
+  // ( crossword.findSolutions.take(50).zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
 
 }

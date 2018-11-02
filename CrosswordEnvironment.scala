@@ -113,7 +113,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
           yield cells.getOrElse(Position(i,j),EmptyCell).toString
         ).mkString("    | ",""," |")
       ).mkString("\n","\n","\n") + s"    +${"-"*(shape.width+2)}+\n" + (
-        s"      used words: ${usedWordDesc} "
+        s"      used words: {${usedWordDesc}} "
       )
       s"${puzzleName}<${strDesc}\n>"
     }
