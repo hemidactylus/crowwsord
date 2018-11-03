@@ -33,7 +33,9 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     val borderedShape: PuzzleShape = CrosswordPuzzleShape(
       shape.width,
       shape.height,
-      shape.wordSet ++ Set[String]("")
+      shape.wordSet ++ Set[String](""),
+      shape.startCells,
+      shape.maxBlackCellCount.map( _ + ( 2*(shape.width + shape.height + 2) ) )
     )
     val startCells: Map[Position,CellContents] = shape.startCells ++ (
         for (
@@ -60,7 +62,8 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     width: Int,
     height: Int,
     wordSet: Set[String],
-    startCells: Map[Position,CellContents]=Map.empty
+    startCells: Map[Position,CellContents],
+    maxBlackCellCount: Option[Int]
   ) extends AbstractPuzzleShape
   //
   class CrosswordConfiguration(
@@ -71,8 +74,29 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     def extendWith(extensionStep: ExtensionStep): Configuration = makeConfig(this,extensionStep)
     def canExtendWith(extensionStep: ExtensionStep): Boolean = {
       // true
-      // usedWords.intersect(extensionStep.newWords).isEmpty
-      extensionStep.newWords.forall( shape.wordSet.contains(_) )
+      (
+        (
+          usedWords.intersect(extensionStep.newWords).isEmpty
+          // FIXME distinguish between repeatable (small) words and non-repeatable ones
+        ) && ( 
+          extensionStep.newWords.forall( shape.wordSet.contains(_) )
+        ) && (
+          shape.maxBlackCellCount match {
+            case None => true
+            case Some(mbcc) => (
+              (
+                cells
+                  .values
+                  .map( (cCont: CellContents) => if (cCont==BlackCell) 1 else 0 ).
+                  reduce( _ + _ ) +
+                extensionStep.cellSteps 
+                  .map( (cStep: CrosswordCellStep) => if (cStep.nCellContents==BlackCell) 1 else 0 ).
+                  reduce( _ + _ )
+              ) <= mbcc
+            )
+          }
+        )
+      )
     }
     def stepProposals: Seq[ExtensionStep] = {
       val emptiesLazyFinder = (
