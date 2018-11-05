@@ -31,11 +31,11 @@ object CoinTotalEnvironment extends PuzzleEnvironment {
     def canExtendWith(extensionStep: ExtensionStep): Boolean = {
       (ctContents :\ 0)(_ + _) <= ctShape.amount - extensionStep.newCoin
     }
-    def stepProposals: Seq[ExtensionStep] = {
+    def stepProposals: Stream[ExtensionStep] = {
       (
         for(newCoin <- ctShape.denominations; if newCoin <= minUsed)
         yield new CoinTotalExtensionStep(newCoin)
-      ).toSeq
+      ).toStream
     }
     def lastTouch: Configuration = this
     def isCompleted: Boolean = (ctContents :\ 0)(_ + _) == ctShape.amount

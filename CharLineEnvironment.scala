@@ -25,11 +25,11 @@ object CharLineEnvironment extends PuzzleEnvironment {
     def extendWith(extensionStep: ExtensionStep): Configuration = makeConfig(this,extensionStep)
     def canExtendWith(extensionStep: ExtensionStep): Boolean =
       clContents.isEmpty || (clContents.last < extensionStep.newChar)
-    def stepProposals: Seq[ExtensionStep] = {
+    def stepProposals: Stream[ExtensionStep] = {
       (
         for(newChar <- clShape.clUniverse; ext=new ExtensionStep(newChar); if canExtendWith(ext))
         yield ext
-      ).toSeq
+      ).toStream
     }
     def lastTouch: Configuration = this
     def isCompleted: Boolean = clContents.length == clShape.clLen

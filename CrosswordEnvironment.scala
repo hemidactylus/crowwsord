@@ -30,10 +30,15 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     )
   }
   override def makeNewConfig(shape: PuzzleShape): Configuration = {
+    //
+    val fullWordSet: Set[String]=shape.wordSet ++ Set[String]("")
+    // FIXME how this repeatable words set is made
+    val repeatableWords: Set[String]=shape.repeatableWords ++ fullWordSet.filter( _.length <= 2 )
     val borderedShape: PuzzleShape = CrosswordPuzzleShape(
       shape.width,
       shape.height,
-      shape.wordSet ++ Set[String](""),
+      fullWordSet,
+      repeatableWords,
       shape.startCells,
       shape.maxBlackCellCount.map( _ + ( 2*(shape.width + shape.height + 2) ) )
     )
@@ -62,6 +67,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     width: Int,
     height: Int,
     wordSet: Set[String],
+    repeatableWords: Set[String],
     startCells: Map[Position,CellContents],
     maxBlackCellCount: Option[Int]
   ) extends AbstractPuzzleShape
@@ -76,10 +82,13 @@ object CrosswordEnvironment extends PuzzleEnvironment {
       // true
       (
         (
-          usedWords.intersect(extensionStep.newWords).isEmpty
-          // FIXME distinguish between repeatable (small) words and non-repeatable ones
+          usedWords
+            .intersect(extensionStep.newWords)
+            .forall( shape.repeatableWords.contains(_) )
         ) && ( 
-          extensionStep.newWords.forall( shape.wordSet.contains(_) )
+          extensionStep
+            .newWords
+            .forall( shape.wordSet.contains(_) )
         ) && (
           shape.maxBlackCellCount match {
             case None => true
@@ -98,7 +107,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
         )
       )
     }
-    def stepProposals: Seq[ExtensionStep] = {
+    def stepProposals: Stream[ExtensionStep] = {
       val emptiesLazyFinder = (
         for (
           y <- (0 until shape.height).view;
@@ -108,7 +117,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
         ) yield tPos
       )
       if (emptiesLazyFinder.isEmpty)
-        Seq.empty
+        Stream.empty
       else {
         val firstFreePosition: Position=emptiesLazyFinder.head
         // we propose horizontal words from here, or a black cell
@@ -118,11 +127,12 @@ object CrosswordEnvironment extends PuzzleEnvironment {
         (
           shape
             .wordSet
+            .toStream
             .filter( extensionMask.accepts(_) )
             .map(
               wordAddingResult(_,firstFreePosition)
             )
-        ).toSeq
+        )
       }
     }
     def lastTouch: Configuration = this
@@ -137,7 +147,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
           yield cells.getOrElse(Position(i,j),EmptyCell).toString
         ).mkString("    | ",""," |")
       ).mkString("\n","\n","\n") + s"    +${"-"*(shape.width+2)}+\n" + (
-        s"      used words: {${usedWordDesc}} "
+        s"    used words: {${usedWordDesc}} "
       )
       s"${puzzleName}<${strDesc}\n>"
     }

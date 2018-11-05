@@ -35,8 +35,8 @@ object Crowwsord extends App {
   import SquareStepperEnvironment.{SquareStepperConfiguration,SquareStepperPuzzleShape,FillingStrategyEnum}
 
   val squareStepperPuzzleShape: SquareStepperPuzzleShape = new SquareStepperPuzzleShape(
-    (5,5),
-    FillingStrategyEnum.Monoplicate
+    (10,10),
+    FillingStrategyEnum.Quadruplicate
   )
   val squareStepper: SquareStepperConfiguration = SquareStepperEnvironment.makeNewConfig(
     squareStepperPuzzleShape
@@ -45,7 +45,7 @@ object Crowwsord extends App {
   println("\n[Crowwsord] Starting (squareStepper) ...")
 
   ( squareStepper.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:   ${c}") } )
-  */
+  */  
 
   import CrosswordEnvironment.{CrosswordConfiguration, CrosswordPuzzleShape, Position, CellContents, BlackCell, EmptyCell, Letter}
 
@@ -54,11 +54,12 @@ object Crowwsord extends App {
 
   val crosswordPuzzleShape: CrosswordPuzzleShape = new CrosswordPuzzleShape(
     4,
-    3,
+    4,
     allowedWords,
+    Set.empty,
     Map.empty, // OR: Map[Position,CellContents]( (Position(1,1) -> BlackCell) )
     // None
-    Some(8)
+    Some(2)
     // ,
     // Map[Position,CellContents](
     //   (Position(1,1) -> BlackCell)
@@ -70,7 +71,7 @@ object Crowwsord extends App {
 
   println("\n[Crowwsord] Starting (crossword) ...")
 
-  ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
-  // ( crossword.findSolutions.take(50).zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
+  // ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
+  ( crossword.findSolutions.view.take(100).force.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
 
 }

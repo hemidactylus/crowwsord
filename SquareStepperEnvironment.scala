@@ -90,14 +90,16 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
       Position(+2,-2),
       Position(+2,+2)
     )
-    def expandFromPoint(sPoint: Position): Seq[Position] = {
-      for (
-        delta <- deltas;
-        nPoint = Position(sPoint.x+delta.x,sPoint.y+delta.y);
-        if nPoint.x >= 0 && nPoint.y >= 0 && nPoint.x < innerSides._1 && nPoint.y < innerSides._2
-      ) yield nPoint
+    def expandFromPoint(sPoint: Position): Stream[Position] = {
+      (
+        for (
+          delta <- deltas;
+          nPoint = Position(sPoint.x+delta.x,sPoint.y+delta.y);
+          if nPoint.x >= 0 && nPoint.y >= 0 && nPoint.x < innerSides._1 && nPoint.y < innerSides._2
+        ) yield nPoint
+      ).toStream
     }
-    def stepProposals: Seq[ExtensionStep] = {
+    def stepProposals: Stream[ExtensionStep] = {
       // the first pos is always on forward
       val newDir: Direction = if(sForward.length > sBackward.length) DirectionEnum.Backward else DirectionEnum.Forward
       val posList: Seq[Position] = if (newDir == DirectionEnum.Forward) sForward else sBackward
@@ -106,30 +108,30 @@ object SquareStepperEnvironment extends PuzzleEnvironment {
           // here we start from scratch
           sShape.fillingStrategy match {
             case FillingStrategyEnum.Monoplicate => {
-              for( x <- 0 until innerSides._1 ; y <- 0 until innerSides._2 ) yield new ExtensionStep(Position(x,y),newDir)
+              for( x <- (0 until innerSides._1).toStream ; y <- (0 until innerSides._2).toStream ) yield new ExtensionStep(Position(x,y),newDir)
             }
             case FillingStrategyEnum.Duplicate => {
               // we place the first pos ready for a vert flip, i.e. on the second-to-last horiz strip
-              for( x <- 0 until innerSides._1 ) yield new ExtensionStep(Position(x,innerSides._2-2),newDir)
+              for( x <- (0 until innerSides._1).toStream ) yield new ExtensionStep(Position(x,innerSides._2-2),newDir)
             }
             case _ => {
               // we place the first pos ready for a horiz flip i.e. on the second-to-last vert stripe
-              for( y <- 0 until innerSides._2 ) yield new ExtensionStep(Position(innerSides._1-2,y),newDir)
+              for( y <- (0 until innerSides._2).toStream ) yield new ExtensionStep(Position(innerSides._1-2,y),newDir)
             }
           }
         else
           sShape.fillingStrategy match {
             case FillingStrategyEnum.Monoplicate => {
-              for( x <- 0 until innerSides._1 ; y <- 0 until innerSides._2 ) yield new ExtensionStep(Position(x,y),newDir)
+              for( x <- (0 until innerSides._1).toStream ; y <- (0 until innerSides._2).toStream ) yield new ExtensionStep(Position(x,y),newDir)
             }
             case FillingStrategyEnum.Duplicate => {
               // the last pos in the path can be anywhere on the flippable line
-              for( x <- 0 until innerSides._1 ) yield new ExtensionStep(Position(x,innerSides._2-2),newDir)
+              for( x <- (0 until innerSides._1).toStream ) yield new ExtensionStep(Position(x,innerSides._2-2),newDir)
             }
             case FillingStrategyEnum.Quadruplicate => {
               // the last pos in the path must be in the x<-->y point
               val startPoint: Position = sForward.head
-              Seq[ExtensionStep](new ExtensionStep(
+              Stream[ExtensionStep](new ExtensionStep(
                 Position(startPoint.y,startPoint.x),
                 newDir
               ))
