@@ -52,26 +52,24 @@ object Crowwsord extends App {
   import scala.io.Source.fromFile
   val allowedWords: Set[String] = fromFile("words.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
 
-  val crosswordPuzzleShape: CrosswordPuzzleShape = new CrosswordPuzzleShape(
-    4,
-    4,
+  val crossword: CrosswordConfiguration = CrosswordEnvironment.createConfig(
+    (4,4),
     allowedWords,
-    Set.empty,
     Map.empty, // OR: Map[Position,CellContents]( (Position(1,1) -> BlackCell) )
-    // None
-    Some(2)
-    // ,
-    // Map[Position,CellContents](
-    //   (Position(1,1) -> BlackCell)
-    // )
-  )
-  val crossword: CrosswordConfiguration = CrosswordEnvironment.makeNewConfig(
-    crosswordPuzzleShape
+    Some(0)
   )
 
   println("\n[Crowwsord] Starting (crossword) ...")
 
-  // ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
-  ( crossword.findSolutions.view.take(100).force.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
+  ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
+
+  /*
+    TROUBLES TO FIX
+      1. if a word is created twice as vertical by inserting this horiz, it is not detected
+      2. if a word is created as vert and === the horiz word being added, not detected
+        (1,2 => need to count, shit)
+      3. check for nonexistent prefixed (patricia?)
+      4. expand on the mask concept to constrain the picking of proposals (LATER)
+  */
 
 }

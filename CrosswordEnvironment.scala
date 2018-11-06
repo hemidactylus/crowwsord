@@ -26,35 +26,39 @@ object CrosswordEnvironment extends PuzzleEnvironment {
         for(extensionCell <- extension.cellSteps )
           yield extensionCell.nPosition->extensionCell.nCellContents
       ),
-      other.usedWords ++ extension.newWords
+      other.usedWords ++ extension.newWords.toSet
     )
   }
-  override def makeNewConfig(shape: PuzzleShape): Configuration = {
+  def createConfig(
+    sizes: (Int,Int),
+    wordSet: Set[String],
+    startCells: Map[Position,CellContents]=Map.empty,
+    maxBlackCellCount: Option[Int]=None
+  ): Configuration = {
     //
-    val fullWordSet: Set[String]=shape.wordSet ++ Set[String]("")
+    val fullWordSet: Set[String]=wordSet ++ Set[String]("")
     // FIXME how this repeatable words set is made
-    val repeatableWords: Set[String]=shape.repeatableWords ++ fullWordSet.filter( _.length <= 2 )
-    val borderedShape: PuzzleShape = CrosswordPuzzleShape(
-      shape.width,
-      shape.height,
-      fullWordSet,
-      repeatableWords,
-      shape.startCells,
-      shape.maxBlackCellCount.map( _ + ( 2*(shape.width + shape.height + 2) ) )
-    )
-    val startCells: Map[Position,CellContents] = shape.startCells ++ (
+    val repeatableWords: Set[String]=fullWordSet.filter( _.length <= 2 )
+    val borderedStartCells: Map[Position,CellContents] = startCells ++ (
         for (
-          x <- List(-1,shape.width);
-          y <- 0 until shape.height
+          x <- List(-1,sizes._1);
+          y <- 0 until sizes._2
         ) yield (Position(x,y) -> BlackCell)
       ).toMap ++ (
         for (
-          y <- List(-1,shape.height);
-          x <- -1 to shape.width
+          y <- List(-1,sizes._2);
+          x <- -1 to sizes._1
         ) yield (Position(x,y) -> BlackCell)
       ).toMap
-
-    makeConfig(borderedShape,startCells)
+    val borderedShape: PuzzleShape = CrosswordPuzzleShape(
+      sizes._1,
+      sizes._2,
+      fullWordSet,
+      fullWordSet.toList.sortBy( _.length ).reverse,
+      repeatableWords,
+      maxBlackCellCount.map( _ + ( 2*(sizes._1 + sizes._2 + 2) ) )
+    )
+    makeConfig(borderedShape,borderedStartCells)
   }
   //
   case class Position(x: Int, y: Int)
@@ -67,8 +71,8 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     width: Int,
     height: Int,
     wordSet: Set[String],
+    wordList: List[String], // to prioritize long words, we pick from a list
     repeatableWords: Set[String],
-    startCells: Map[Position,CellContents],
     maxBlackCellCount: Option[Int]
   ) extends AbstractPuzzleShape
   //
@@ -79,15 +83,16 @@ object CrosswordEnvironment extends PuzzleEnvironment {
   ) extends AbstractConfiguration {
     def extendWith(extensionStep: ExtensionStep): Configuration = makeConfig(this,extensionStep)
     def canExtendWith(extensionStep: ExtensionStep): Boolean = {
-      // true
       (
+        // FIXME treat the new words as a list!
         (
           usedWords
-            .intersect(extensionStep.newWords)
+            .intersect(extensionStep.newWords.toSet) // FIXME
             .forall( shape.repeatableWords.contains(_) )
         ) && ( 
           extensionStep
             .newWords
+            .toSet // FIXME
             .forall( shape.wordSet.contains(_) )
         ) && (
           shape.maxBlackCellCount match {
@@ -126,7 +131,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
         )
         (
           shape
-            .wordSet
+            .wordList
             .toStream
             .filter( extensionMask.accepts(_) )
             .map(
@@ -191,10 +196,10 @@ object CrosswordEnvironment extends PuzzleEnvironment {
         closedLetterSequence: Seq[CrosswordCellStep],
         newWordLstSeq: Seq[Seq[String]]
       )=closedLetterWOSequence.unzip
-      val newWordsAcross: Set[String] = (newWordLstSeq.flatMap( (wList: Seq[String]) => wList )).toSet
+      val newWordsAcross: List[String] = (newWordLstSeq.toList.flatMap( (wList: Seq[String]) => wList.toList ))
       new ExtensionStep(
         closedLetterSequence,
-        Set[String](wordToAdd) ++ newWordsAcross
+        newWordsAcross :+ wordToAdd
       )
     }
     def getCrossingCompleteWord(midPosition: Position, inserteeCell: CellContents): Seq[String] = {
@@ -246,7 +251,7 @@ object CrosswordEnvironment extends PuzzleEnvironment {
   class CrosswordCellStep(val nPosition: Position, val nCellContents: CellContents)
   class CrosswordExtensionStep(
     val cellSteps: Seq[CrosswordCellStep],
-    val newWords: Set[String]
+    val newWords: List[String]
   ) extends AbstractExtensionStep {
     override def toString = s"CellSteps[${cellSteps}],newWords[${newWords}]"
   }
