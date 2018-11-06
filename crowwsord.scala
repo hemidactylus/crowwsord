@@ -56,7 +56,7 @@ object Crowwsord extends App {
     (4,4),
     allowedWords,
     Map.empty, // OR: Map[Position,CellContents]( (Position(1,1) -> BlackCell) )
-    Some(0)
+    Some(2)
   )
 
   println("\n[Crowwsord] Starting (crossword) ...")
