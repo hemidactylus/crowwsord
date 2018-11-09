@@ -60,16 +60,6 @@ object CrosswordEnvironment extends PuzzleEnvironment {
     )
     makeConfig(borderedShape,borderedStartCells)
   }
-
-  // TOOLS (to move elsewhere)
-  def makeCounter[T](l: List[T]): Map[T,Int] = {
-      val cnt: scala.collection.mutable.Map[T,Int] = scala.collection.mutable.Map.empty
-      for ( itm <- l) {
-          if (cnt contains itm) cnt(itm)=cnt(itm)+1 else cnt(itm)=1
-      }
-      cnt.toMap
-  }
-
   //
   case class Position(x: Int, y: Int)
   class CellContents
@@ -93,9 +83,8 @@ object CrosswordEnvironment extends PuzzleEnvironment {
   ) extends AbstractConfiguration {
     def extendWith(extensionStep: ExtensionStep): Configuration = makeConfig(this,extensionStep)
     def canExtendWith(extensionStep: ExtensionStep): Boolean = {
-      val newWordCounter: Map[String,Int]=makeCounter(extensionStep.newWords)
+      val newWordCounter: Map[String,Int]=CrosswordUtilities.makeCounter(extensionStep.newWords)
       (
-        //
         (
           // words from the proposal: the non-new are all repeatable?
           usedWords

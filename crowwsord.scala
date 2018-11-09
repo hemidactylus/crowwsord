@@ -53,10 +53,10 @@ object Crowwsord extends App {
   val allowedWords: Set[String] = fromFile("words.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
 
   val crossword: CrosswordConfiguration = CrosswordEnvironment.createConfig(
-    (4,4),
+    (5,5),
     allowedWords,
     Map.empty, // OR: Map[Position,CellContents]( (Position(1,1) -> BlackCell) )
-    Some(2)
+    Some(8)
   )
 
   println("\n[Crowwsord] Starting (crossword) ...")
@@ -65,10 +65,9 @@ object Crowwsord extends App {
 
   /*
     TROUBLES TO FIX
-      1. if a word is created twice as vertical by inserting this horiz, it is not detected
-      2. if a word is created as vert and === the horiz word being added, not detected
-        (1,2 => need to count, shit)
       3. check for nonexistent prefixed (patricia?)
+        Yes: a patricia specialized to deal with constrained search where each letter is a set of acceptable
+        letters, each built by consulting the partially-formed verticals if the full above part is done
       4. expand on the mask concept to constrain the picking of proposals (LATER)
   */
 
