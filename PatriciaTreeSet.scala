@@ -18,6 +18,8 @@
         should provide most of the needed functionality
 */
 
+package net.salamandrina.patriciatrees
+
 import collection._
 import scala.collection.mutable.{Builder, SetBuilder}
 import scala.collection.generic.CanBuildFrom

@@ -2,6 +2,8 @@
   patriciaTester.scala
 */
 
+import net.salamandrina.patriciatrees.PatriciaTreeSet
+
 object PTTester extends App {
   import scala.io.Source.fromFile
   val wds: Set[String] = fromFile("FULL_WORDS.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
