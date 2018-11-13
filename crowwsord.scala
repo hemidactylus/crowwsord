@@ -53,11 +53,11 @@ object Crowwsord extends App {
   val allowedWords: Set[String] = fromFile("words.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
 
   val crossword: CrosswordConfiguration = CrosswordEnvironment.createConfig(
-    (3,3),
+    (12,12),
     allowedWords,
     Map.empty, // OR: 
-    // Map[Position,CellContents]( (Position(2,1) -> Letter('P')) ),
-    Some(0)
+    // Map[Position,CellContents]( (Position(0,1) -> BlackCell )),
+    Some(16)
   )
 
   println("\n[Crowwsord] Starting (crossword) ...")
