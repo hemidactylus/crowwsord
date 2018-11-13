@@ -53,23 +53,21 @@ object Crowwsord extends App {
   val allowedWords: Set[String] = fromFile("words.txt").getLines().filter(_ != "").map( _.toUpperCase ).toSet
 
   val crossword: CrosswordConfiguration = CrosswordEnvironment.createConfig(
-    (12,12),
+    (8,8),
     allowedWords,
     Map.empty, // OR: 
-    // Map[Position,CellContents]( (Position(0,1) -> BlackCell )),
-    Some(16)
+    // Map[Position,CellContents]( 
+    //   Position(0,0) -> BlackCell,
+    //   Position(1,0) -> Letter('F'),
+    //   Position(2,0) -> Letter('U'),
+    //   Position(3,0) -> Letter('N'),
+    //   Position(4,0) -> Letter('G'),
+    //   Position(5,0) -> Letter('O')
+    // ),
+    Some(9)
   )
 
   println("\n[Crowwsord] Starting (crossword) ...")
 
   ( crossword.findSolutions.zipWithIndex) foreach ( { case (c,i) => println(s"\n    Sol=${i+1}:\n   ${c}") } )
-
-  /*
-    TROUBLES TO FIX
-      3. check for nonexistent prefixed (patricia?)
-        Yes: a patricia specialized to deal with constrained search where each letter is a set of acceptable
-        letters, each built by consulting the partially-formed verticals if the full above part is done
-      4. expand on the mask concept to constrain the picking of proposals (LATER)
-  */
-
 }

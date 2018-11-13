@@ -1,21 +1,5 @@
 /*
   PatriciaTreeSet.scala
-
-    We must be able to:
-      browse stored words according to prefix "mask", i.e.
-        [a,b,g][any][r,t,b][any][any][o,p,t]
-      get letters given a prefix, i.e.
-        car -> [terminating,d,t,n...]
-          (from: "car", "card", "cart", "carnage" ...)
-
-    1. we would like to make this into a (faster, presumably) immutable-once-built object
-    2. we need to be able to get the available letters and *whether this prefix is also a completed word*
-    3. ... ?
-    (seems like a lot of testing is needed here)
-
-      .maskedIterator
-      .suffixes.keys
-        should provide most of the needed functionality
 */
 
 package net.salamandrina.patriciatrees
