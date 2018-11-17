@@ -65,15 +65,6 @@ object Crowwsord{
       (puzzleWidth,puzzleHeight),
       allowedWords,
       initialCells,
-      // Map.empty, // OR: 
-      // Map[Position,CellContents]( 
-      //   Position(0,0) -> BlackCell,
-      //   Position(1,0) -> Letter('F'),
-      //   Position(2,0) -> Letter('U'),
-      //   Position(3,0) -> Letter('N'),
-      //   Position(4,0) -> Letter('G'),
-      //   Position(5,0) -> Letter('O')
-      // ),
       maxBlackCells
     )
 
